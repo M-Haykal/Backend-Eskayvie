@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  emailPassword  String?  // App Password Gmail
+  role      String   // admin / customer
+  otpCode      Int?   // Kolom untuk menyimpan kode OTP (opsional)
+  otpExpiration DateTime? // Kolom untuk menyimpan waktu kedaluwarsa OTP
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  stock       Int
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  images      Image[]   // Relasi ke tabel Image
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Image {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  url       String  // URL gambar
+  product   Product @relation(fields: [productId], references: [id])
+  @@map("images") 
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  products  Product[]
+}
+
+model Order {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  status      String      // pending, shipped, delivered, canceled
+  totalAmount Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User         @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+  payment     Payment?
+}
+
+model OrderItem {
+  id         Int       @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  quantity   Int       // Quantity of the product in this order item
+  price      Float     // Price for this quantity of the product
+  order      Order     @relation(fields: [orderId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
+}
+
+
+model Payment {
+  id        Int       @id @default(autoincrement())
+  orderId   Int       @unique   // Pastikan orderId bersifat unik untuk relasi one-to-one
+  amount    Float
+  status    String    // pending, completed, failed
+  method    String    // credit card, bank transfer, etc.
+  createdAt DateTime  @default(now())
+  order     Order     @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  productId Int
+  rating    Int       // 1 to 5
+  comment   String
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+}
+
+model Article {
+  id        Int      @id @default(autoincrement())
+  title     String
+  image     String
+  text      String
+  author    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
