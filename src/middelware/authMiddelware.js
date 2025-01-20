@@ -1,7 +1,7 @@
     const jwt = require('jsonwebtoken');
 
     // Secret key untuk JWT
-    const JWT_SECRET = 'adwda233wqfqaf';
+    const JWT_SECRET = process.env.JWT_SECRET;
 
     // Middleware untuk verifikasi token dan role
     const verifyToken = (req, res, next) => {
@@ -16,8 +16,8 @@
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
     
-        if (!decoded.email || !decoded.emailPassword) {
-          return res.status(401).json({ message: 'Token tidak valid! Informasi email atau emailPassword hilang.' });
+        if (!decoded.email) {
+          return res.status(401).json({ message: 'Token tidak valid! Informasi email hilang.' });
         }
     
         req.user = decoded; // Masukkan data ke req.user

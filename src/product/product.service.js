@@ -89,11 +89,45 @@ const deleteProduct = async (id) => {
   }
 };
 
+const updateRatingProduct = async (productId) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { productId },
+      select: { rating: true },
+    })
+
+    if (reviews.length === 0) {
+      throw new Error("Tidak ada rating untuk produk ini.");
+  }
+
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRating / reviews.length;
+
+        // Update kolom averageRating di tabel Product
+        const updatedProduct = await prisma.product.update({
+            where: { id: productId },
+            data: { averageRating },
+        });
+
+        return {
+            success: true,
+            message: "Average rating updated successfully.",
+            data: updatedProduct,
+        };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || "Failed to update average rating.",
+  };
+  }
+}
+
 module.exports = {
   getAllProducts,
   createProduct,
   searchProduct,
   getProductById,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  updateRatingProduct
 };

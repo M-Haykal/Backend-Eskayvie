@@ -1,52 +1,52 @@
 const express = require('express');
-const { createReview, getAllReviews, getReviewById, updateReview, deleteReview } = require('./review.service');
+const { createReview, getAllReviewsProduct, getReviewProductById, updateReview, deleteReviewProduct } = require('./review.service');
 const { verifyToken, verifyRole } = require('../middelware/authMiddelware');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-    const { userId, productId, rating, comment } = req.body;
+    const data = req.body;
     try {
-        const review = await createReview(userId, productId, rating, comment);
+        const review = await createReview(data);
         res.status(201).json(review);
     } catch (error) {
         res.status(error.status || 500).json({ error: error.message });
     }
 });
 
-router.get('/',verifyToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const reviews = await getAllReviews();
+        const reviews = await getAllReviewsProduct();
         res.status(200).json(reviews);
     } catch (error) {
         res.status(500).json({ error: 'An error occurred while fetching reviews' });
     }
 });
 
-router.get('/:id',verifyToken, async (req, res) => {
+router.get('/:id', async (req, res) => {
     const  id  = parseInt(req.params.id)
     try {
-        const review = await getReviewById(parseInt(id));
+        const review = await getReviewProductById(parseInt(id));
         res.status(200).json(review);
     } catch (error) {
         res.status(error.status || 500).json({ error: error.message });
     }
 });
 
-router.put('/:id',verifyToken, async (req, res) => {
+router.put('/:id', async (req, res) => {
     const  id  = parseInt(req.params.id)
-    const { rating, comment } = req.body;
+    const data = req.body;
     try {
-        const updatedReview = await updateReview(parseInt(id), { rating, comment });
+        const updatedReview = await updateReview(parseInt(id), data);
         res.status(200).json(updatedReview);
     } catch (error) {
         res.status(error.status || 500).json({ error: error.message });
     }
 });
 
-router.delete('/:id',verifyToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const deletedReview = await deleteReview(parseInt(id));
+        const deletedReview = await deleteReviewProduct(parseInt(id));
         res.status(200).json({ message: 'Review deleted successfully', review: deletedReview });
     } catch (error) {
         res.status(error.status || 500).json({ error: error.message });

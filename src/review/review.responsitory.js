@@ -1,33 +1,12 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
-async function createReviewInDB(data) {
-    return await prisma.review.create({ data });
-}
-
-async function getAllReviewsFromDB() {
+const prisma = require('../db');
+async function getAllReviews() {
     return await prisma.review.findMany();
 }
 
-async function getReviewByIdFromDB(id) {
+async function getReviewById(id) {
     return await prisma.review.findUnique({ where: { id } });
 }
-
-async function updateReviewInDB(id, data) {
-    try {
-        return await prisma.review.update({
-            where: { id },
-            data,
-        });
-    } catch (error) {
-        if (error.code === 'P2025') {
-            throw { status: 404, message: 'Review not found' };
-        }
-        throw error;
-    }
-}
-
-async function deleteReviewFromDB(id) {
+async function deleteReview(id) {
     try {
         return await prisma.review.delete({
             where: { id },
@@ -40,4 +19,4 @@ async function deleteReviewFromDB(id) {
     }
 }
 
-module.exports = { createReviewInDB, getAllReviewsFromDB, getReviewByIdFromDB, updateReviewInDB, deleteReviewFromDB };
+module.exports = { getAllReviews, getReviewById,  deleteReview };

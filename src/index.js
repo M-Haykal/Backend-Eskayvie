@@ -3,15 +3,11 @@ const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const path = require('path');
 const { verifyToken, verifyRole } = require('./middelware/authMiddelware');
-
-
 const app = express();
 dotenv.config();
-
 const PORT = process.env.PORT || 3000;
-
-// Middleware global
 app.use(express.json());
+const looger = require('morgan');
 
 // Import dan gunakan controller
 const userController = require('./user/user.controller');
@@ -23,19 +19,18 @@ const paymentController = require('./payment/payment.controller');
 const blogController = require('./blog/blog.controller');
 const imageController = require('./image_product/image.controller');
 
-// route login & register
-app.use('/users', userController);
-
-// route prodct
-app.use('/products', productController);
 // app.use('/products',verifyToken, productController);
+app.use('/users', userController);
+app.use('/products', productController);
 app.use('/categorys', categoryController);
 app.use('/orders', orderController);
 app.use('/reviews', reviewController);
 app.use('/payments', paymentController);
 app.use('/blogs', blogController)
 app.use('/images', imageController);
+app.use(looger('dev'));
 
+// route test image
 app.use('/images', express.static(path.join(__dirname,'public/images')));
 app.use('/blogs/images', express.static(path.join(__dirname, 'public/images')));
 
