@@ -19,15 +19,14 @@ router.post("/", async (req, res) => {
       status: 200,
       message: "Create product successfully",
       data: productData,
-    })
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "An error occurred while creating the product." });
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating the product." });
   }
 });
-
-
-
 
 // Endpoint untuk mendapatkan semua produk
 router.get("/", async (req, res) => {
@@ -36,14 +35,14 @@ router.get("/", async (req, res) => {
       include: {
         category: true,
         reviews: true,
-        images: true
+        images: true,
       },
     });
-   res.send({
-    status: 200,
-    message: "Get all products",
-    data: products
-   })
+    res.send({
+      status: 200,
+      message: "Get all products",
+      data: products,
+    });
   } catch (error) {
     res.status(500).send({
       error: error.message,
@@ -79,29 +78,30 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// router.post("/", verifyToken, verifyRole("admin"), async (req, res) => {
-//   router.post("/", async (req, res) => {
-//   try {
-//     const productData = req.body;
-//     if (!productData) {
-//       return res.status(400).send({
-//         error: "No product data provided",
-//         status: 400,
-//       });
-//     }
-//     const product = await createProduct(productData);
-//     res.send({
-//       data_product: productData,
-//       status: 201,
-//       message: "create product",
-//     });
-//   } catch (error) {
-//     res.status(500).send({
-//       error: error.message,
-//       status: 500,
-//     });
-//   }
-// });
+router.post("/", verifyToken, verifyRole("admin"), async (req, res) => {
+  router.post("/", async (req, res) => {
+    try {
+      const productData = req.body;
+      if (!productData) {
+        return res.status(400).send({
+          error: "No product data provided",
+          status: 400,
+        });
+      }
+      const product = await createProduct(productData);
+      res.send({
+        data_product: productData,
+        status: 201,
+        message: "create product",
+      });
+    } catch (error) {
+      res.status(500).send({
+        error: error.message,
+        status: 500,
+      });
+    }
+  });
+});
 
 // router.patch("/:id", verifyToken, verifyRole("admin"), async (req, res) => {
 router.patch("/:id", async (req, res) => {

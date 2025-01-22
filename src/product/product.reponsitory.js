@@ -87,7 +87,7 @@ const editProduct = async (id, productData) => {
       productData.categoryId
     )
   ) {
-    return res.status(400).send("Some fields are missing");
+    throw new Error("All fields are required")
   }
     return product
 }

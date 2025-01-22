@@ -2,11 +2,13 @@ const express = require("express");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const path = require('path');
+const cors = require('cors');
 const { verifyToken, verifyRole } = require('./middelware/authMiddelware');
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
+app.use(cors());
 const looger = require('morgan');
 
 // Import dan gunakan controller

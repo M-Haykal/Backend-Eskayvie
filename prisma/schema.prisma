@@ -14,7 +14,7 @@ model User {
   name          String
   role          String
   otpCode       Int?
-  c    DateTime?
+  otpExpired    DateTime?
   orders        Order[]
   reviews       Review[]
 }
@@ -86,6 +86,7 @@ model Review {
   productId Int
   rating    Int
   comment   String
+  mediaUrls  String[] 
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id])
   user      User     @relation(fields: [userId], references: [id])

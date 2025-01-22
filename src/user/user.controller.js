@@ -20,25 +20,33 @@ router.get("/",  async (req, res) => {
   }
 });
 
+
 // Route untuk registrasi
 router.post('/register', async (req, res) => {
   const { name, email, password, role } = req.body;
-  
+
   if (!name || !email || !password || !role) {
     return res.status(400).json({ message: 'Semua field harus diisi!' });
   }
 
   try {
     const register = await registerUser({ name, email, password, role });
-    res.send({
-      status: register.status,
-      message: 'Registrasi berhasil!',
+
+    // Menggunakan status dan message yang dikembalikan dari registerUser
+    if (register.status === 400) {
+      return res.status(400).json({ message: register.data.message });
+    }
+
+    res.status(register.status).json({
+      status: 201,
+      message: register.data.message,
       data: register.data.user
-    })
+    });
   } catch (error) {
     res.status(500).json({ message: 'Terjadi kesalahan pada server.', error: error.message });
   }
 });
+
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -103,7 +111,11 @@ router.post('/verify-otp', async (req, res) => {
 
   try {
     const result = await verifyOtp(email, otpCode, newPassword);
-    res.status(200).json(result);
+    res.send({
+      status: 200,
+      message: result.message,
+      data: result
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

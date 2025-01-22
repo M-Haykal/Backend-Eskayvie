@@ -1,9 +1,13 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { findUserByEmail, createUser, updateUser } = require('./user.reponsitory');
-const JWT_SECRET = 'adwda233wqfqaf';
-const prisma = require('../db');
-const  nodemailer = require('nodemailer');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const {
+  findUserByEmail,
+  createUser,
+  updateUser,
+} = require("./user.reponsitory");
+const JWT_SECRET = "adwda233wqfqaf";
+const prisma = require("../db");
+const nodemailer = require("nodemailer");
 
 // Fungsi untuk mendapatkan semua user
 const getAllUsers = async () => {
@@ -15,7 +19,8 @@ const registerUser = async ({ name, email, password, role }) => {
   const userEmail = await findUserByEmail(email);
 
   if (userEmail) {
-    return { status: 400, data: { message: 'Email sudah digunakan!' } };
+    // Mengubah pesan error agar sesuai dengan status 400
+    return { status: 400, data: { message: "Email sudah digunakan!" } };
   }
 
   const passwordHash = await bcrypt.hash(password, 5);
@@ -28,39 +33,49 @@ const registerUser = async ({ name, email, password, role }) => {
 
   return {
     status: 201,
+    message: "Registrasi berhasil!",
     data: {
-      message: 'Registrasi berhasil!',
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     },
   };
 };
 
+
 // Fungsi untuk login user
 const loginUser = async ({ email, password }) => {
   const user = await findUserByEmail(email);
-  if (!user) return { status: 404, data: { message: 'User dengan email ini tidak ditemukan!' } };
-  
+  if (!user)
+    return {
+      status: 404,
+      data: { message: "User dengan email ini tidak ditemukan!" },
+    };
+
   // Verifikasi password
   const passwordVerif = await bcrypt.compare(password, user.password);
-  if (!passwordVerif) return { status: user401, data: { message: 'Password anda salah!' } };
-  
+  if (!passwordVerif)
+    return { status: 401, data: { message: "Password anda salah!" } };  // Perbaikan di sini
 
-  
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: "1h" }
   );
 
   return {
     status: 200,
-    data: { message: 'Login berhasil!', token, role: user.role },
+    data: { message: "Login berhasil!", token, role: user.role },
   };
 };
 
+
 async function sendOtpEmail(toEmail, otpCode) {
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER, // pastikan variabel lingkungan diatur
       pass: process.env.EMAIL_PASS,
@@ -68,10 +83,10 @@ async function sendOtpEmail(toEmail, otpCode) {
   });
 
   const message = {
-     from: process.env.EMAIL_USER,
-      to: toEmail,
-      subject: 'Kode OTP untuk Reset Kata Sandi Anda',
-      text: `
+    from: process.env.EMAIL_USER,
+    to: toEmail,
+    subject: "Kode OTP untuk Reset Kata Sandi Anda",
+    text: `
       Halo,
     
       Kami telah menerima permintaan untuk mereset kata sandi akun Anda di Eskyvie, toko online terpercaya untuk alat medis dan produk perawatan kulit berkualitas.
@@ -97,11 +112,11 @@ function generateOtp() {
 async function handleForgetPassword(email) {
   const user = await findUserByEmail(email);
   if (!user) {
-    throw new Error('User dengan email ini tidak ditemukan!');
+    throw new Error("User dengan email ini tidak ditemukan!");
   }
 
-  const otpCode = generateOtp();  // Pastikan ini menghasilkan integer
-  console.log('Generated OTP:', otpCode);  // Debugging untuk memeriksa apakah OTP yang dihasilkan integer
+  const otpCode = generateOtp(); // Pastikan ini menghasilkan integer
+  console.log("Generated OTP:", otpCode); // Debugging untuk memeriksa apakah OTP yang dihasilkan integer
 
   const otpExpired = new Date(Date.now() + 5 * 60 * 1000); // 5 menit
 
@@ -110,23 +125,22 @@ async function handleForgetPassword(email) {
 
   await sendOtpEmail(email, otpCode);
 
-  return otpCode;  // Kembalikan hanya OTP code
+  return otpCode; // Kembalikan hanya OTP code
 }
-
 
 async function verifyOtp(email, otpCode, newPassword) {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    throw new Error('Pengguna tidak ditemukan!');
+    throw new Error("Pengguna tidak ditemukan!");
   }
 
   if (user.otpCode !== otpCode) {
-    throw new Error('Kode OTP tidak valid!');
+    throw new Error("Kode OTP tidak valid!");
   }
 
   if (user.otpExpired < new Date()) {
-    throw new Error('Kode OTP telah kedaluwarsa!');
+    throw new Error("Kode OTP telah kedaluwarsa!");
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -137,7 +151,14 @@ async function verifyOtp(email, otpCode, newPassword) {
     otpExpired: null,
   });
 
-  return { message: 'Password berhasil diperbarui!', user: updatedUser };
+  return { message: "Password berhasil diperbarui!", user: updatedUser };
 }
 
-module.exports = { getAllUsers, registerUser, loginUser, sendOtpEmail, handleForgetPassword, verifyOtp };
+module.exports = {
+  getAllUsers,
+  registerUser,
+  loginUser,
+  sendOtpEmail,
+  handleForgetPassword,
+  verifyOtp,
+};
