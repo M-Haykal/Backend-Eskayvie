@@ -9,24 +9,22 @@ const {
 const { verifyToken, verifyRole } = require("../middelware/authMiddelware");
 const router = express.Router();
 
-// Endpoint untuk membuat produk
 router.post("/", async (req, res) => {
-  const productData = req.body;
-
   try {
-    await createProduct(productData);
-    res.send({
-      status: 200,
-      message: "Create product successfully",
-      data: productData,
+    const productData = req.body;
+    const newProduct = await createProduct(productData);
+
+    res.status(200).json({
+      message: "Product created successfully",
+      data: newProduct,
     });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while creating the product." });
+    console.error("Error creating product:", error.message);
+    res.status(400).json({ error: error.message });
   }
 });
+
+
 
 // Endpoint untuk mendapatkan semua produk
 router.get("/", async (req, res) => {
@@ -51,15 +49,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// router.get('/',verifyToken, verifyRole("customer"), async (req, res) =>{
-//   router.get('/', async (req, res) =>{
-// const products = await prisma.product.findMany({
-//   include: { category: true, reviews: true },
-// });
-// res.json(products)
-// })
-
-// router.get('/:id',verifyToken, verifyRole("customer"), async (req, res) => {
 router.get("/:id", async (req, res) => {
   const productId = parseInt(req.params.id);
 
@@ -78,32 +67,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", verifyToken, verifyRole("admin"), async (req, res) => {
-  router.post("/", async (req, res) => {
-    try {
-      const productData = req.body;
-      if (!productData) {
-        return res.status(400).send({
-          error: "No product data provided",
-          status: 400,
-        });
-      }
-      const product = await createProduct(productData);
-      res.send({
-        data_product: productData,
-        status: 201,
-        message: "create product",
-      });
-    } catch (error) {
-      res.status(500).send({
-        error: error.message,
-        status: 500,
-      });
-    }
-  });
-});
 
-// router.patch("/:id", verifyToken, verifyRole("admin"), async (req, res) => {
 router.patch("/:id", async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
@@ -111,16 +75,15 @@ router.patch("/:id", async (req, res) => {
     const product = await updateProduct(parseInt(productId), productData);
 
     return res.send({
-      data_product: product,
       status: 200,
       message: "update product",
+      data: product,
     });
   } catch (error) {
     throw error;
   }
 });
 
-// router.delete("/:id", verifyToken, verifyRole("admin"), async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const productId = parseInt(req.params.id);
   const product = await deleteProduct(productId);

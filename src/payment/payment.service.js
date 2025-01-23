@@ -27,10 +27,13 @@ const getPaymentById = async (id) => {
 
   const createPaymentTransaction = async (orderId, amount, method) => {
     try {
+      // Pastikan amount adalah integer (bulat tanpa desimal)
+      amount = Math.floor(amount); // Atau Math.round(amount) jika ingin pembulatan terdekat
+    
       // Simpan transaksi ke database
       const payment = await paymentRepository.createPayment({
         orderId,
-        amount,
+        amount: amount, // Gunakan amount yang sudah dibulatkan
         status: 'pending',
         method,
       });
@@ -40,10 +43,11 @@ const getPaymentById = async (id) => {
         const transaction = await snap.createTransaction({
           transaction_details: {
             order_id: `order-${payment.id}`,
-            gross_amount: amount,
+            gross_amount: amount, // Kirimkan gross_amount yang sudah dibulatkan
           },
           payment_type: method,
         });
+        console.log(transaction);
   
         return transaction;
       } catch (error) {
@@ -52,9 +56,11 @@ const getPaymentById = async (id) => {
       }
       
     } catch (error) {
+      console.error("Error saat membuat pembayaran:", error.message);
       throw new Error('Terjadi kesalahan saat membuat transaksi pembayaran.');
     }
   };
+  
 
   const updatePaymentAndOrderStatus = async (paymentId) => {
     const payment = await paymentRepository.getPaymentById(paymentId);

@@ -2,7 +2,7 @@ const prisma = require("../db");
 
 const findProductById = async (productId) => {
     return prisma.product.findUnique({
-        where: { id: productId },
+        where: { id: parseInt(productId) },
     });
 };
 
@@ -22,9 +22,11 @@ const findAllOrders = async () => {
 
 
 
+
+
 const findOrderById = async (orderId) => {
     return prisma.order.findUnique({
-        where: { id: orderId },
+        where: { id: parseInt(orderId) },
         include: {
             orderItems: { include: { product: true } },
         },
@@ -33,7 +35,7 @@ const findOrderById = async (orderId) => {
 
 const updateOrderById = async (orderId, orderData) => {
     return prisma.order.update({
-        where: { id: orderId },
+        where: { id: parseInt(orderId) },
         data: orderData,
         include: { orderItems: true },
     });

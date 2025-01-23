@@ -2,9 +2,6 @@ const { json } = require("body-parser");
 const prisma = require("../db");
 const { findProductById, editProduct, deleteProductById, createProductData } = require("./product.reponsitory");
 
-
-
-
 const getAllProducts = async () => {
   const products = await prisma.product.findMany();
   return products;
@@ -60,14 +57,15 @@ const getProductById = async (id) => {
 
 
 const createProduct = async (productData) => {
-  if (!productData.categoryId) {
-    throw new Error({ message: "Category ID is required" });
+  if (!productData.categoryName) { // Periksa categoryName yang ada pada input
+    throw new Error({ message: "Category name is required" });
   }
 
-  // Membuat produk dengan relasi ke kategori
-  const product = createProductData(productData);
-  return json(product);
+  // Panggil fungsi createProductData yang sudah dimodifikasi
+  const product = await createProductData(productData); 
+  return product;
 };
+
 
 const updateProduct = async (id, productData) => {
   try {

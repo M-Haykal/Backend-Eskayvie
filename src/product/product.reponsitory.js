@@ -1,50 +1,46 @@
-const { json } = require("body-parser");
 const prisma = require("../db")
 
-
-
 const createProductData = async (productData) => {
-    // Buat produk jika semua validasi terpenuhi
-    if (
-      !productData.name ||
-      !productData.description ||
-      !productData.price ||
-      !productData.stock ||
-      !productData.categoryId
-    ) {
-      return res.status(400).json({ error: "All fields are required." });
-    }
+  if (
+    !productData.name ||
+    !productData.description ||
+    !productData.price ||
+    !productData.stock ||
+    !productData.categoryName
+  ) {
+    throw new Error("All fields are required.");
+  }
 
-    // Periksa apakah categoryId valid
-    const category = await prisma.category.findUnique({
-      where: { id: productData.categoryId },
-    });
+  // Mencari kategori berdasarkan nama
+  const category = await prisma.category.findUnique({
+    where: { name: productData.categoryName },
+  });
 
-    if (!category) {
-      return res.status(400).json({ error: "Category ID not found." });
-    }
+  if (!category) {
+    throw new Error("Category not found.");
+  }
 
-    // Buat produk jika semua validasi terpenuhi
-    const product = await prisma.product.create({
-      data: {
-        name: productData.name,
-        description: productData.description,
-        price: productData.price,
-        stock: productData.stock,
-        categoryId: productData.categoryId,
-      },
-    });
+  // Menyimpan produk ke dalam database
+  const product = await prisma.product.create({
+    data: {
+      name: productData.name,
+      description: productData.description,
+      price: Number(productData.price),  // Pastikan harga dalam tipe angka
+      stock: Number(productData.stock),  // Pastikan stok dalam tipe angka
+      categoryId: category.id,
+    },
+  });
 
-    // Ambil gambar-gambar yang terkait dengan produk baru
-    const images = await prisma.image.findMany({
-      where: { productId: product.id },
-    });
+  // Mengambil data gambar yang terkait dengan produk yang baru dibuat
+  const images = await prisma.image.findMany({
+    where: { productId: product.id },
+  });
 
-    // Gabungkan produk dengan gambar yang terkait
-    product.images = images;
+  return { ...product, images };
+};
 
-    return product
-  };
+
+
   
 
 const findProductById = async (id) => {
@@ -77,18 +73,6 @@ const editProduct = async (id, productData) => {
         }
     });
 
-  if (
-    !(
-      productData.name &&
-      productData.description &&
-      productData.price &&
-      productData.stock&&
-      productData.imageUrl&&
-      productData.categoryId
-    )
-  ) {
-    throw new Error("All fields are required")
-  }
     return product
 }
 

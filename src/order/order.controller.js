@@ -12,6 +12,7 @@ const { verifyToken, verifyRole } = require('../middelware/authMiddelware');
 
 router.post("/", async (req, res) => {
     try {
+        console.log(req.body); // Untuk memastikan data yang diterima benar
         const order = await createNewOrder(req.body);
         res.status(200).send({
             status: 200,
@@ -19,10 +20,12 @@ router.post("/", async (req, res) => {
             data_order: order,
         });
     } catch (error) {
+        console.error(error); // Log error di server
         const status = error.message.includes("not found") ? 400 : 500;
         res.status(status).json({ error: error.message });
     }
 });
+
 
 router.get("/", async (req, res) => {
     try {
