@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT;
+const revokedTokens = [];
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -12,9 +13,12 @@ const verifyToken = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
+  // Cek apakah token dicabut
+  if (revokedTokens.includes(token)) {
+    return res.status(401).json({ message: "Token sudah dicabut!" });
+  }
+
   try {
-    // console.log(token);
-    // console.log(JWT_SECRET);
     const decoded = jwt.verify(token, JWT_SECRET);
     if (!decoded.email) {
       return res
@@ -36,6 +40,19 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+const logout = (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer")) {
+    return res.status(401).json({ message: "Token tidak ditemukan!" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  revokedTokens.push(token);
+
+  return res.status(200).json({ message: "Logout berhasil!" });
+};
+
 const verifyRole = (requiredRole) => {
   return (req, res, next) => {
     if (!req.user || req.user.role !== requiredRole) {
@@ -50,4 +67,5 @@ const verifyRole = (requiredRole) => {
 module.exports = {
   verifyToken,
   verifyRole,
+  logout
 };

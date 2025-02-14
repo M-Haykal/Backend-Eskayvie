@@ -66,9 +66,10 @@ const loginUser = async ({ email, password }) => {
     { expiresIn: "1h" }
   );
 
+  console.log(`User with id ${user.id} has logged in`);
   return {
     status: 200,
-    data: { message: "Login berhasil!", token, role: user.role },
+    data: { message: "Login berhasil!", token, role: user.role,  name: user.name, id: user.id },
   };
 };
 

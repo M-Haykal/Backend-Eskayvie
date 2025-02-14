@@ -1,6 +1,6 @@
 const express = require("express");
 const { registerUser, loginUser, getAllUsers, handleForgetPassword, verifyOtp} = require("./user.service");
-const { verifyToken, verifyRole } = require('../middelware/authMiddelware');
+const { verifyToken, verifyRole, logout } = require('../middelware/authMiddelware');
 const prisma = require("../db");
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
@@ -120,4 +120,6 @@ router.post('/verify-otp', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+router.post("/logout", verifyToken, logout);
 module.exports = router;

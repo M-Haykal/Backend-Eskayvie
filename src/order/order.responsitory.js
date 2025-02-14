@@ -8,6 +8,7 @@ const findProductById = async (productId) => {
 
 const createOrder = async (orderData) => {
     return prisma.order.create({
+
         data: orderData,
         include: { orderItems: true },
     });
