@@ -51,8 +51,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   const { orderId, amount, method } = req.body;
+  const userId = req.user.id; // Ambil userId dari token
+
+  console.log("Order ID dari body:", orderId);
 
   try {
     // Validasi input
@@ -78,12 +81,12 @@ router.post("/", async (req, res) => {
     }
 
     // Buat transaksi pembayaran
-    const transaction = await paymentService.createPaymentTransaction(orderId, amount, method);
+    const transaction = await paymentService.createPaymentTransaction(userId, orderId, amount, method);
 
     res.status(201).json({
       success: true,
       message: 'Transaksi pembayaran berhasil dibuat.',
-      data : transaction,
+      data: transaction,
     });
   } catch (error) {
     console.error("Error di paymentController:", error.message);
@@ -93,6 +96,8 @@ router.post("/", async (req, res) => {
     });
   }
 });
+
+
 
 router.post('/verify', async (req, res) => {
   const { order_id, transaction_status } = req.body;

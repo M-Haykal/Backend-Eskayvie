@@ -1,25 +1,25 @@
 const { getAllReviews, getReviewById, deleteReview } = require('./review.responsitory');
 const { updateRatingProduct } = require('../product/product.service');
 const prisma = require('../db');
-const createReview = async (data, files) => {
+const createReview = async (data, file) => {
   try {
-   
-    const userId = parseInt(data.userId, 10);
-    const productId = parseInt(data.productId, 10);
-    const rating = parseInt(data.rating, 5);
+    const userId = parseInt(data.userId);
+    const productId = parseInt(data.productId); // Pastikan ini Int
+    const rating = parseInt(data.rating);
 
-    let mediaUrls = [];
-    if (files && files.length > 0) {
-      mediaUrls = files.map(file => `/images/${file.filename}`);
+    let mediaUrl = '';
+    if (file) {
+      mediaUrl = `/images/${file.filename}`;
     }
 
     const newReview = await prisma.review.create({
       data: {
-        rating,       
-        userId,       
-        productId,    
-        comment: data.comment, 
-        mediaUrls,     
+        rating,
+        userId,
+        productId,
+        comment: data.comment,
+        mediaUrls: mediaUrl // Simpan langsung sebagai string
+
       },
     });
 
@@ -34,12 +34,14 @@ const createReview = async (data, files) => {
       review: newReview,
     };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       message: error.message || "Terjadi kesalahan saat membuat review.",
     };
   }
 };
+
 
 
 

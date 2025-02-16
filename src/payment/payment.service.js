@@ -1,5 +1,7 @@
 const midtransClient = require('midtrans-client');
 const paymentRepository = require('./payment.responsitory');
+const prisma = require("../db");
+
 
 const snap = new midtransClient.Snap({
     isProduction: false,
@@ -25,41 +27,53 @@ const getPaymentById = async (id) => {
     }
   };
 
-  const createPaymentTransaction = async (orderId, amount, method) => {
-    try {
-      // Pastikan amount adalah integer (bulat tanpa desimal)
-      amount = Math.floor(amount); // Atau Math.round(amount) jika ingin pembulatan terdekat
-    
-      // Simpan transaksi ke database
-      const payment = await paymentRepository.createPayment({
+  const createPaymentTransaction = async (userId, orderId, amount, method) => {
+  try {
+    console.log("Memeriksa order dengan ID:", orderId);
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      console.error(`Order dengan ID ${orderId} tidak ditemukan.`);
+      throw new Error(`Order dengan ID ${orderId} tidak ditemukan.`);
+    }
+
+    console.log("Order ditemukan:", order);
+
+    // Cek duplikasi pembayaran
+    const existingPayment = await prisma.payment.findFirst({
+      where: { orderId },
+    });
+
+    if (existingPayment) {
+      console.error(`Transaksi pembayaran untuk orderId ${orderId} sudah ada.`);
+      throw new Error(`Transaksi pembayaran untuk orderId ${orderId} sudah ada.`);
+    }
+
+    console.log("Tidak ada pembayaran duplikat untuk orderId:", orderId);
+
+    // Buat transaksi pembayaran baru tanpa userId
+    const payment = await prisma.payment.create({
+      data: {
         orderId,
-        amount: amount, // Gunakan amount yang sudah dibulatkan
+        amount,
         status: 'pending',
         method,
-      });
+      },
+    });
+
+    console.log("Transaksi pembayaran berhasil dibuat:", payment);
+    return payment;
+  } catch (error) {
+    console.error("Error di createPaymentTransaction:", error.message);
+    throw error;
+  }
+};
+
   
-      // Request ke Midtrans
-      try {
-        const transaction = await snap.createTransaction({
-          transaction_details: {
-            order_id: `order-${payment.id}`,
-            gross_amount: amount, // Kirimkan gross_amount yang sudah dibulatkan
-          },
-          payment_type: method,
-        });
-        console.log(transaction);
-  
-        return transaction;
-      } catch (error) {
-        console.error("Error dari Midtrans:", error.message);
-        throw new Error('Terjadi kesalahan saat membuat transaksi di Midtrans.');
-      }
-      
-    } catch (error) {
-      console.error("Error saat membuat pembayaran:", error.message);
-      throw new Error('Terjadi kesalahan saat membuat transaksi pembayaran.');
-    }
-  };
+
   
 
   const updatePaymentAndOrderStatus = async (paymentId) => {

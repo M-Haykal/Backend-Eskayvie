@@ -50,22 +50,39 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const productId = parseInt(req.params.id);
-
+  const { id } = req.params;
   try {
-    const product = await getProductById(productId);
-    res.status(200).send({
-      data_product: product,
+    const product = await prisma.product.findUnique({
+      where: {
+        id: Number(id),
+      },
+      include: {
+        category: true,
+        reviews: true,
+        images: true,
+      },
+    });
+
+    if (!product) {
+      return res.status(404).send({
+        status: 404,
+        message: "Product not found",
+      });
+    }
+
+    res.send({
       status: 200,
-      message: "Get product by ID",
+      message: "Get product details",
+      data: product,
     });
   } catch (error) {
-    res.status(404).send({
+    res.status(500).send({
       error: error.message,
-      status: 404,
+      status: 500,
     });
   }
 });
+
 
 
 router.patch("/:id", async (req, res) => {

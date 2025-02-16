@@ -31,14 +31,14 @@ const calculateOrderItemsWithPrice = async (orderItems) => {
   return { itemsWithPrice, totalAmount };
 };
 
-const createNewOrder = async (orderData) => {
-    const { itemsWithPrice, totalAmount } = await calculateOrderItemsWithPrice(orderData.orderItems);
-    return createOrder({
-        userId: orderData.userId,
-        status: orderData.status,
-        totalAmount,
-        orderItems: { create: itemsWithPrice },
-    });
+const createNewOrder = async (orderData, userId) => {
+  const { itemsWithPrice, totalAmount } = await calculateOrderItemsWithPrice(orderData.orderItems);
+  return createOrder({
+      userId, // Menggunakan userId dari token
+      status: orderData.status,
+      totalAmount,
+      orderItems: { create: itemsWithPrice },
+  });
 };
 
 const updateOrder = async (orderId, orderData) => {

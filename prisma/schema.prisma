@@ -89,6 +89,7 @@ model Review {
   productId Int
   rating    Int
   comment   String
+  mediaUrls  String   @db.Text
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id])
   user      User     @relation(fields: [userId], references: [id])

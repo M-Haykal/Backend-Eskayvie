@@ -11,7 +11,6 @@ const getPaymentById = async (id) => {
 
 const createPayment = async ({ orderId, amount, method }) => {
   try {
-    // Log langkah validasi orderId
     console.log("Memeriksa order dengan ID:", orderId);
 
     const order = await prisma.order.findUnique({
@@ -25,7 +24,7 @@ const createPayment = async ({ orderId, amount, method }) => {
 
     console.log("Order ditemukan:", order);
 
-    // Log langkah validasi duplikasi pembayaran
+    // Cek duplikasi pembayaran
     const existingPayment = await prisma.payment.findUnique({
       where: { orderId },
     });
@@ -37,7 +36,7 @@ const createPayment = async ({ orderId, amount, method }) => {
 
     console.log("Tidak ada pembayaran duplikat untuk orderId:", orderId);
 
-    // Buat transaksi pembayaran baru
+    // Buat transaksi pembayaran baru tanpa userId
     const payment = await prisma.payment.create({
       data: {
         orderId,

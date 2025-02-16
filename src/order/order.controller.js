@@ -10,17 +10,18 @@ const {
 const { verifyToken, verifyRole } = require('../middelware/authMiddelware');
 
 
-router.post("/", async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
     try {
-        console.log(req.body); // Untuk memastikan data yang diterima benar
-        const order = await createNewOrder(req.body);
+        // Ambil userId dari hasil decode token yang disimpan di req.user
+        const userId = req.user.id; 
+        const order = await createNewOrder(req.body, userId);
         res.status(200).send({
             status: 200,
             message: "Create order successfully",
             data_order: order,
         });
     } catch (error) {
-        console.error(error); // Log error di server
+        console.error(error);
         const status = error.message.includes("not found") ? 400 : 500;
         res.status(status).json({ error: error.message });
     }

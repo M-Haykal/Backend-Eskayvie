@@ -12,19 +12,36 @@ const prisma = require("../db");
 const fs = require("fs");
 const path = require("path");
 
-router.post("/", upload.array("images", 5), async (req, res) => {
-  let uploadedFiles = [];
+
+router.post("/", verifyToken, (req, res, next) => {
+  upload.single("image")(req, res, function (err) {
+    if (err) {
+      // Tangani error dari multer
+      return res.status(400).json({ error: err.message });
+    }
+    // Lanjutkan ke handler berikutnya
+    next();
+  });
+}, async (req, res) => {
+  console.log("File uploaded:", req.file); // Periksa apakah file terdeteksi
+  console.log("Request headers:", req.headers); // Debugging headers
+
+  let uploadedFile = null;
   try {
     const data = req.body;
-    const userId = parseInt(data.userId, 10);
-    const productId = parseInt(data.productId, 10);
     const rating = parseInt(data.rating, 10);
 
-    if (isNaN(userId) || isNaN(productId)) {
-      throw new Error("userId dan productId harus berupa angka.");
+    if (!req.user || !req.user.id) {
+      throw new Error("User tidak terautentikasi.");
+    }
+    const userId = req.user.id;
+    const productId = parseInt(data.productId, 10);
+
+    if (isNaN(productId) || isNaN(rating)) {
+      throw new Error("ProductId dan rating harus berupa angka.");
     }
 
-    if (!userId || !productId || !rating || !data.comment) {
+    if (!productId || !rating || !data.comment) {
       throw new Error("Semua field harus diisi.");
     }
 
@@ -32,16 +49,8 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       throw new Error("Rating harus antara 1 sampai 5.");
     }
 
-    // Simpan path file untuk penghapusan jika terjadi error
-    if (req.files && req.files.length > 0) {
-      uploadedFiles = req.files.map((file) => path.join(__dirname, "../public/images", file.filename));
-    }
-
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!userExists) {
-      throw new Error(`User dengan ID ${userId} tidak ditemukan.`);
+    if (req.file) {
+      uploadedFile = path.join(__dirname, "../public/images", req.file.filename);
     }
 
     const productExists = await prisma.product.findUnique({
@@ -51,18 +60,8 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       throw new Error(`Produk dengan ID ${productId} tidak ditemukan.`);
     }
 
-    const existingReview = await prisma.review.findFirst({
-      where: {
-        userId: userId,
-        productId: productId,
-      },
-    });
 
-    if (existingReview) {
-      throw new Error(`user dengan ID ${userId} sudah memiliki review untuk produk dengan ID ${productId}.`);
-    }
-
-    const review = await createReview(data, req.files);
+    const review = await createReview({ ...data, userId }, req.file);
 
     res.status(201).json({
       status: 201,
@@ -71,16 +70,13 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     });
 
   } catch (error) {
-    // Hapus file yang telah diunggah jika terjadi kesalahan
-    if (uploadedFiles.length > 0) {
-      uploadedFiles.forEach((filePath) => {
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.error(`Gagal menghapus file: ${filePath} - ${err.message}`);
-          } else {
-            console.log(`File dihapus: ${filePath}`);
-          }
-        });
+    if (uploadedFile) {
+      fs.unlink(uploadedFile, (err) => {
+        if (err) {
+          console.error(`Gagal menghapus file: ${uploadedFile} - ${err.message}`);
+        } else {
+          console.log(`File dihapus: ${uploadedFile}`);
+        }
       });
     }
 
@@ -88,6 +84,17 @@ router.post("/", upload.array("images", 5), async (req, res) => {
   }
 });
 
+
+  // const existingReview = await prisma.review.findFirst({
+    //   where: {
+    //     userId: userId,
+    //     productId: productId,
+    //   },
+    // });
+
+    // if (existingReview) {
+    //   throw new Error(`User dengan ID ${userId} sudah memiliki review untuk produk dengan ID ${productId}.`);
+    // }
 
 
 router.get("/", async (req, res) => {
