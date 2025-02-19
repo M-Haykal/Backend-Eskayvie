@@ -14,9 +14,10 @@ const createOrder = async (orderData) => {
     });
 };
 
-const findAllOrders = async () => {
+const findAllOrders = async (userId) => {
     return await prisma.order.findMany({
-      include: { orderItems: { include: { product: true } } },
+        where: { userId },
+        include: { orderItems: { include: { product: true } } },
     });
 };
 

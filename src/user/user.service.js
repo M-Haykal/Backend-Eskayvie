@@ -13,6 +13,11 @@ const nodemailer = require("nodemailer");
 const getAllUsers = async () => {
   return await prisma.user.findMany();
 };
+const getUser = async (id) => {
+  return await prisma.user.findUnique({
+    where: { id },
+  });
+};
 
 // Fungsi untuk registrasi user
 const registerUser = async ({ name, email, password, role }) => {
@@ -162,4 +167,5 @@ module.exports = {
   sendOtpEmail,
   handleForgetPassword,
   verifyOtp,
+  getUser
 };

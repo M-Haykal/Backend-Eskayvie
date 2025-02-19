@@ -28,9 +28,10 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 
-router.get("/", async (req, res) => {
+router.get("/", verifyToken, async (req, res) => {
     try {
-        const orders = await findAllOrders();
+        const userId = req.user.id; 
+        const orders = await findAllOrders(userId);
         res.status(200).send({
             status: 200,
             message: "Get all orders",

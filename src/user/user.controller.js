@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser, getAllUsers, handleForgetPassword, verifyOtp} = require("./user.service");
+const { registerUser, loginUser, getAllUsers, getUser, handleForgetPassword, verifyOtp} = require("./user.service");
 const { verifyToken, verifyRole, logout } = require('../middelware/authMiddelware');
 const prisma = require("../db");
 const nodemailer = require('nodemailer');
@@ -7,12 +7,14 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 
 // Route untuk mendapatkan semua users
-router.get("/",  async (req, res) => {
+router.get("/", verifyToken,  async (req, res) => {
+  userId = req.user.id;
   try {
-    const users = await getAllUsers();
+    const users = await getUser(userId);
    res.send({
     status: 200,
-    message: "Get all users successfully",
+    // message: "Get all users successfully",
+    message: "Get users successfully",
     data: users
    })
   } catch (error) {
@@ -23,9 +25,10 @@ router.get("/",  async (req, res) => {
 
 // Route untuk registrasi
 router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
+  const role = "user";
 
-  if (!name || !email || !password || !role) {
+  if (!name || !email || !password ) {
     return res.status(400).json({ message: 'Semua field harus diisi!' });
   }
 

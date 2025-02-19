@@ -8,7 +8,10 @@ const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  credentials: true,
+  origin: true
+}));
 const looger = require('morgan');
 
 // Import dan gunakan controller
